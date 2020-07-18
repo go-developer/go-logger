@@ -94,6 +94,15 @@ func (wl *WrapperLogger) Panic(ctx *gin.Context, msg string, fieldList ...zap.Fi
 	wl.zapLogger.Panic(msg, wl.getLoggerInfo(ctx, fieldList)...)
 }
 
+// Sync 刷入日志
+//
+// Author : go_developer@163.com<张德满>
+//
+// Date : 2020/07/19 02:40:37
+func (wl *WrapperLogger) Sync() {
+	wl.zapLogger.Sync()
+}
+
 // getLoggerInfo 获取日志记录的相关信息
 //
 // Author : go_developer@163.com<张德满>
@@ -108,12 +117,15 @@ func (wl *WrapperLogger) getLoggerInfo(ctx *gin.Context, fieldList []zap.Field) 
 	if nil == fieldList {
 		fieldList = make([]zapcore.Field, 0)
 	}
-	if ctxTraceID, exist = ctx.Get(traceLogIDField); !exist {
+	if nil == ctx {
 		traceID = util.ProjectUtil.GetTraceID()
-		ctx.Set(traceLogIDField, traceID)
 	} else {
-		traceID = fmt.Sprintf("%v", ctxTraceID)
+		if ctxTraceID, exist = ctx.Get(traceLogIDField); !exist {
+			traceID = util.ProjectUtil.GetTraceID()
+			ctx.Set(traceLogIDField, traceID)
+		} else {
+			traceID = fmt.Sprintf("%v", ctxTraceID)
+		}
 	}
-
 	return append([]zap.Field{zap.String(traceLogIDField, traceID)}, fieldList...)
 }
