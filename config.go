@@ -10,6 +10,8 @@ package logger
 import (
 	"os"
 	"time"
+
+	"go.uber.org/zap/zapcore"
 )
 
 // TimeIntervalType 日志时间间隔类型
@@ -158,4 +160,42 @@ func formatConfig(c *RotateLogConfig) error {
 	}
 
 	return nil
+}
+
+// GetEncoder 获取空中台输出的encoder
+//
+// Author : go_developer@163.com<张德满>
+//
+// Date : 6:24 下午 2021/1/2
+func GetEncoder(isConsole bool) zapcore.Encoder {
+	if isConsole {
+		return zapcore.NewConsoleEncoder(zapcore.EncoderConfig{
+			MessageKey:  "msg",
+			LevelKey:    "level",
+			EncodeLevel: zapcore.CapitalLevelEncoder,
+			TimeKey:     "ts",
+			EncodeTime: func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+				enc.AppendString(t.Format("2006-01-02 15:04:05"))
+			},
+			CallerKey:    "file",
+			EncodeCaller: zapcore.ShortCallerEncoder,
+			EncodeDuration: func(d time.Duration, enc zapcore.PrimitiveArrayEncoder) {
+				enc.AppendInt64(int64(d) / 1000000)
+			},
+		})
+	}
+	return zapcore.NewJSONEncoder(zapcore.EncoderConfig{
+		MessageKey:  "msg",
+		LevelKey:    "level",
+		EncodeLevel: zapcore.CapitalLevelEncoder,
+		TimeKey:     "ts",
+		EncodeTime: func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+			enc.AppendString(t.Format("2006-01-02 15:04:05"))
+		},
+		CallerKey:    "file",
+		EncodeCaller: zapcore.ShortCallerEncoder,
+		EncodeDuration: func(d time.Duration, enc zapcore.PrimitiveArrayEncoder) {
+			enc.AppendInt64(int64(d) / 1000000)
+		},
+	})
 }

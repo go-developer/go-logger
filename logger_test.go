@@ -9,7 +9,8 @@ package logger
 
 import (
 	"testing"
-	"time"
+
+	"go.uber.org/zap"
 
 	"go.uber.org/zap/zapcore"
 )
@@ -20,20 +21,7 @@ import (
 //
 // Date : 5:50 下午 2021/1/2
 func Test_Logger(t *testing.T) {
-	encoder := zapcore.NewConsoleEncoder(zapcore.EncoderConfig{
-		MessageKey:  "msg",
-		LevelKey:    "level",
-		EncodeLevel: zapcore.CapitalLevelEncoder,
-		TimeKey:     "ts",
-		EncodeTime: func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
-			enc.AppendString(t.Format("2006-01-02 15:04:05"))
-		},
-		CallerKey:    "file",
-		EncodeCaller: zapcore.ShortCallerEncoder,
-		EncodeDuration: func(d time.Duration, enc zapcore.PrimitiveArrayEncoder) {
-			enc.AppendInt64(int64(d) / 1000000)
-		},
-	})
+	encoder := GetEncoder(false)
 	c, err := NewRotateLogConfig("./logs", "test.log")
 	if nil != err {
 		panic(err)
@@ -42,5 +30,5 @@ func Test_Logger(t *testing.T) {
 	if nil != err {
 		panic(err)
 	}
-	l.Info("这是一条测试日志")
+	l.Info("这是一条测试日志", zap.Any("lala", "不限制类型"))
 }
