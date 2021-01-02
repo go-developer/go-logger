@@ -18,14 +18,16 @@ import (
 type TimeIntervalType uint
 
 const (
+	// TimeIntervalTypeMinute 按分钟切割
+	TimeIntervalTypeMinute = TimeIntervalType(0)
 	// TimeIntervalTypeHour 按小时切割
-	TimeIntervalTypeHour = TimeIntervalType(0)
+	TimeIntervalTypeHour = TimeIntervalType(1)
 	// TimeIntervalTypeDay 按天切割
-	TimeIntervalTypeDay = TimeIntervalType(1)
+	TimeIntervalTypeDay = TimeIntervalType(2)
 	// TimeIntervalTypeMonth 按月切割
-	TimeIntervalTypeMonth = TimeIntervalType(2)
+	TimeIntervalTypeMonth = TimeIntervalType(3)
 	// TimeIntervalTypeYear 按年切割
-	TimeIntervalTypeYear = TimeIntervalType(3)
+	TimeIntervalTypeYear = TimeIntervalType(4)
 )
 
 const (
@@ -143,6 +145,9 @@ func formatConfig(c *RotateLogConfig) error {
 
 	// 生成格式化日志全路径
 	switch c.TimeIntervalType {
+	case TimeIntervalTypeMinute:
+		c.TimeInterval = time.Minute
+		c.FullLogFormat = c.LogPath + "%Y" + c.DivisionChar + "%m" + c.DivisionChar + "%d" + c.DivisionChar + "%H" + c.DivisionChar + "%M" + c.DivisionChar + c.LogFileName
 	case TimeIntervalTypeHour:
 		c.TimeInterval = time.Hour
 		c.FullLogFormat = c.LogPath + "%Y" + c.DivisionChar + "%m" + c.DivisionChar + "%d" + c.DivisionChar + "%H" + c.DivisionChar + c.LogFileName

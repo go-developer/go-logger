@@ -9,6 +9,7 @@ package logger
 
 import (
 	"testing"
+	"time"
 
 	"go.uber.org/zap"
 
@@ -22,7 +23,7 @@ import (
 // Date : 5:50 下午 2021/1/2
 func Test_Logger(t *testing.T) {
 	encoder := GetEncoder(false)
-	c, err := NewRotateLogConfig("./logs", "test.log")
+	c, err := NewRotateLogConfig("./logs", "test.log", WithTimeIntervalType(TimeIntervalTypeMinute), WithMaxAge(120*time.Second))
 	if nil != err {
 		panic(err)
 	}
@@ -30,5 +31,9 @@ func Test_Logger(t *testing.T) {
 	if nil != err {
 		panic(err)
 	}
-	l.Info("这是一条测试日志", zap.Any("lala", "不限制类型"))
+
+	for {
+		l.Info("这是一条测试日志", zap.Any("lala", "不限制类型"))
+		time.Sleep(1 * time.Second)
+	}
 }
