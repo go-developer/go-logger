@@ -11,4 +11,5 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/tebeka/strftime v0.1.5 // indirect
 	go.uber.org/zap v1.16.0
+	gopkg.in/yaml.v2 v2.3.0 // indirect
 )
