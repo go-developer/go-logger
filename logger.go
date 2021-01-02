@@ -9,6 +9,7 @@ package logger
 
 import (
 	"io"
+	"os"
 
 	"go.uber.org/zap"
 
@@ -22,7 +23,7 @@ import (
 // Author : go_developer@163.com<张德满>
 //
 // Date : 5:05 下午 2021/1/2
-func NewLogger(loggerLevel zapcore.Level, encoder zapcore.Encoder, splitConfig *RotateLogConfig) (*zap.Logger, error) {
+func NewLogger(loggerLevel zapcore.Level, consoleOutput bool, encoder zapcore.Encoder, splitConfig *RotateLogConfig) (*zap.Logger, error) {
 	loggerLevelDeal := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
 		return lvl >= loggerLevel
 	})
@@ -39,10 +40,17 @@ func NewLogger(loggerLevel zapcore.Level, encoder zapcore.Encoder, splitConfig *
 		return nil, err
 	}
 
-	// 最后创建具体的Logger
-	core := zapcore.NewTee(
+	fileHandlerList := []zapcore.Core{
 		zapcore.NewCore(encoder, zapcore.AddSync(loggerWriter), loggerLevelDeal),
-	)
+	}
+
+	// 设置控制台输出
+	if consoleOutput {
+		fileHandlerList = append(fileHandlerList, zapcore.NewCore(encoder, zapcore.AddSync(os.Stdout), loggerLevelDeal))
+	}
+
+	// 最后创建具体的Logger
+	core := zapcore.NewTee(fileHandlerList...)
 
 	log := zap.New(core, zap.AddCaller()) // 需要传入 zap.AddCaller() 才会显示打日志点的文件名和行数
 	return log, nil

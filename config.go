@@ -9,6 +9,7 @@ package logger
 
 import (
 	"os"
+	"strings"
 	"time"
 
 	"go.uber.org/zap/zapcore"
@@ -167,40 +168,204 @@ func formatConfig(c *RotateLogConfig) error {
 	return nil
 }
 
+// ============== 以下为zap相关配置
+
+const (
+	// defaultMessageKey 默认的message key
+	defaultMessageKey = "message"
+	// defaultLevelKey 默认的level
+	defaultLevelKey = "level"
+	// defaultTimeKey 默认时间key
+	defaultTimeKey = "time"
+	// defaultCallerKey 默认的文件key
+	defaultCallerKey = "file"
+	// defaultUserShortCaller 是否使用短的文件调用格式
+	defaultUseShortCaller = true
+	// defaultUseJsonFormat 日志默认使用json格式
+	defaultUseJsonFormat = true
+)
+
+// defaultTimeEncoder 默认的时间处理
+//
+// Author : go_developer@163.com<张德满>
+//
+// Date : 11:53 下午 2021/1/2
+func defaultTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+	enc.AppendString(t.Format("2006-01-02 15:04:05"))
+}
+
+// defaultEncodeDuration 默认的原始时间处理
+//
+// Author : go_developer@163.com<张德满>
+//
+// Date : 11:56 下午 2021/1/2
+func defaultEncodeDuration(d time.Duration, enc zapcore.PrimitiveArrayEncoder) {
+	enc.AppendInt64(int64(d) / 1000000)
+}
+
+// OptionLogger 日志配置的选项
+//
+// Author : go_developer@163.com<张德满>
+//
+// Date : 11:41 下午 2021/1/2
+type OptionLogger struct {
+	UseJsonFormat  bool                    // 日志使用json格式
+	MessageKey     string                  // message 字段
+	LevelKey       string                  // level 字段
+	TimeKey        string                  // 时间字段
+	CallerKey      string                  // 记录日志的文件的代码行数
+	UseShortCaller bool                    // 使用短的调用文件格式
+	TimeEncoder    zapcore.TimeEncoder     // 格式化时间的函数
+	EncodeDuration zapcore.DurationEncoder // 原始时间信息
+}
+
+// 设置日志配置
+type SetLoggerOptionFunc func(o *OptionLogger)
+
+// WithUseJsonFormat 日志是否使用json格式数据
+//
+// Author : go_developer@163.com<张德满>
+//
+// Date : 12:30 上午 2021/1/3
+func WithUseJsonFormat(isJsonFormat bool) SetLoggerOptionFunc {
+	return func(o *OptionLogger) {
+		o.UseJsonFormat = isJsonFormat
+	}
+}
+
+// WithMessageKey 使用message key
+//
+// Author : go_developer@163.com<张德满>
+//
+// Date : 12:32 上午 2021/1/3
+func WithMessageKey(messageKey string) SetLoggerOptionFunc {
+	return func(o *OptionLogger) {
+		messageKey = strings.Trim(messageKey, " ")
+		if len(messageKey) == 0 {
+			return
+		}
+		o.MessageKey = messageKey
+	}
+}
+
+// WithLevelKey 设置level key
+//
+// Author : go_developer@163.com<张德满>
+//
+// Date : 12:33 上午 2021/1/3
+func WithLevelKey(levelKey string) SetLoggerOptionFunc {
+	return func(o *OptionLogger) {
+		levelKey = strings.Trim(levelKey, " ")
+		if len(levelKey) == 0 {
+			return
+		}
+		o.LevelKey = levelKey
+	}
+}
+
+// WithTimeKey 设置time key ...
+//
+// Author : go_developer@163.com<张德满>
+//
+// Date : 12:34 上午 2021/1/3
+func WithTimeKey(timeKey string) SetLoggerOptionFunc {
+	return func(o *OptionLogger) {
+		timeKey = strings.Trim(timeKey, " ")
+		if len(timeKey) == 0 {
+			return
+		}
+		o.TimeKey = timeKey
+	}
+}
+
+// WithCallerKey 设置caller key
+//
+// Author : go_developer@163.com<张德满>
+//
+// Date : 12:37 上午 2021/1/3
+func WithCallerKey(callerKey string) SetLoggerOptionFunc {
+	return func(o *OptionLogger) {
+		callerKey = strings.Trim(callerKey, " ")
+		if len(callerKey) == 0 {
+			return
+		}
+		o.CallerKey = callerKey
+	}
+}
+
+// WithShortCaller 是否使用短caller格式
+//
+// Author : go_developer@163.com<张德满>
+//
+// Date : 12:39 上午 2021/1/3
+func WithShortCaller(useShortCaller bool) SetLoggerOptionFunc {
+	return func(o *OptionLogger) {
+		o.UseShortCaller = useShortCaller
+	}
+}
+
+// WithTimeEncoder 设置格式化时间方法
+//
+// Author : go_developer@163.com<张德满>
+//
+// Date : 12:41 上午 2021/1/3
+func WithTimeEncoder(encoder zapcore.TimeEncoder) SetLoggerOptionFunc {
+	return func(o *OptionLogger) {
+		if nil == encoder {
+			return
+		}
+		o.TimeEncoder = encoder
+	}
+}
+
+// WithEncodeDuration 原始时间
+//
+// Author : go_developer@163.com<张德满>
+//
+// Date : 12:42 上午 2021/1/3
+func WithEncodeDuration(encoder zapcore.DurationEncoder) SetLoggerOptionFunc {
+	return func(o *OptionLogger) {
+		if nil == encoder {
+			return
+		}
+		o.EncodeDuration = encoder
+	}
+}
+
 // GetEncoder 获取空中台输出的encoder
 //
 // Author : go_developer@163.com<张德满>
 //
 // Date : 6:24 下午 2021/1/2
-func GetEncoder(isConsole bool) zapcore.Encoder {
-	if isConsole {
-		return zapcore.NewConsoleEncoder(zapcore.EncoderConfig{
-			MessageKey:  "msg",
-			LevelKey:    "level",
-			EncodeLevel: zapcore.CapitalLevelEncoder,
-			TimeKey:     "ts",
-			EncodeTime: func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
-				enc.AppendString(t.Format("2006-01-02 15:04:05"))
-			},
-			CallerKey:    "file",
-			EncodeCaller: zapcore.ShortCallerEncoder,
-			EncodeDuration: func(d time.Duration, enc zapcore.PrimitiveArrayEncoder) {
-				enc.AppendInt64(int64(d) / 1000000)
-			},
-		})
+func GetEncoder(option ...SetLoggerOptionFunc) zapcore.Encoder {
+	ol := &OptionLogger{
+		UseJsonFormat:  defaultUseJsonFormat,
+		MessageKey:     defaultMessageKey,
+		LevelKey:       defaultLevelKey,
+		TimeKey:        defaultTimeKey,
+		TimeEncoder:    defaultTimeEncoder,
+		CallerKey:      defaultCallerKey,
+		EncodeDuration: defaultEncodeDuration,
+		UseShortCaller: defaultUseShortCaller,
 	}
-	return zapcore.NewJSONEncoder(zapcore.EncoderConfig{
-		MessageKey:  "msg",
-		LevelKey:    "level",
-		EncodeLevel: zapcore.CapitalLevelEncoder,
-		TimeKey:     "ts",
-		EncodeTime: func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
-			enc.AppendString(t.Format("2006-01-02 15:04:05"))
-		},
-		CallerKey:    "file",
-		EncodeCaller: zapcore.ShortCallerEncoder,
-		EncodeDuration: func(d time.Duration, enc zapcore.PrimitiveArrayEncoder) {
-			enc.AppendInt64(int64(d) / 1000000)
-		},
-	})
+	for _, o := range option {
+		o(ol)
+	}
+	ec := zapcore.EncoderConfig{
+		MessageKey:     ol.MessageKey,
+		LevelKey:       ol.LevelKey,
+		EncodeLevel:    zapcore.CapitalLevelEncoder,
+		TimeKey:        ol.TimeKey,
+		EncodeTime:     ol.TimeEncoder,
+		CallerKey:      ol.CallerKey,
+		EncodeCaller:   zapcore.ShortCallerEncoder,
+		EncodeDuration: ol.EncodeDuration,
+	}
+	if !ol.UseShortCaller {
+		ec.EncodeCaller = zapcore.FullCallerEncoder
+	}
+	if !ol.UseJsonFormat {
+		return zapcore.NewConsoleEncoder(ec)
+	}
+	return zapcore.NewJSONEncoder(ec)
 }
