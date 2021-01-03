@@ -140,3 +140,12 @@ func (gw *GinWrapper) DPanic(msg string, field ...zap.Field) {
 	fieldList := gw.formatFieldList(field)
 	gw.loggerInstance.DPanic(msg, fieldList...)
 }
+
+// GetZapLoggerInstance 获取zap日志实例
+//
+// Author : go_developer@163.com<张德满>
+//
+// Date : 2021/01/03 22:56:47
+func (gw *GinWrapper) GetZapLoggerInstance() *zap.Logger {
+	return gw.loggerInstance
+}
