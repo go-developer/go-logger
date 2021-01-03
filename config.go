@@ -8,6 +8,7 @@
 package logger
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -191,7 +192,30 @@ const (
 //
 // Date : 11:53 下午 2021/1/2
 func defaultTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+	sec := t.UnixNano() / 1e9
+	ms := t.UnixNano() / 1e6 % 1e3
+	ns := t.UnixNano() % 1e6
+	enc.AppendString(time.Unix(sec, ns).Format("2006-01-02 15:04:05") + "." + fmt.Sprintf("%v", ms) + "+" + fmt.Sprintf("%v", ns))
+}
+
+// SecondTimeEncoder 秒级时间戳格式化
+//
+// Author : go_developer@163.com<张德满>
+//
+// Date : 8:34 下午 2021/1/3
+func SecondTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 	enc.AppendString(t.Format("2006-01-02 15:04:05"))
+}
+
+// MsTimeEncoder 毫秒时间格式化方法
+//
+// Author : go_developer@163.com<张德满>
+//
+// Date : 8:35 下午 2021/1/3
+func MsTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+	sec := t.UnixNano() / 1e9
+	ms := t.UnixNano() / 1e6 % 1e3
+	enc.AppendString(time.Unix(sec, 0).Format("2006-01-02 15:04:05") + "." + fmt.Sprintf("%v", ms))
 }
 
 // defaultEncodeDuration 默认的原始时间处理
